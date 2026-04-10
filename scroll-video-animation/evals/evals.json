@@ -1,0 +1,149 @@
+{
+  "skill_name": "scroll-video-animation",
+  "evals": [
+    {
+      "id": 1,
+      "name": "basic-single-text-block",
+      "prompt": "Create a scroll-driven video animation page with a single hero headline that fades in at 20% scroll progress and fades out at 40%. Include a simple navigation bar with a brand logo on the left and menu icon on the right.",
+      "expected_output": "A complete HTML file with a fixed video element, proper scroll-to-video mapping using requestAnimationFrame, one text block with data-start=0.2 and data-end=0.4, and a transparent navigation bar. The body height should be 600vh and all CSS/JS should be inline.",
+      "files": [
+        {
+          "path": "index.html",
+          "type": "file"
+        }
+      ],
+      "assertions": [
+        {
+          "id": 1,
+          "description": "HTML file exists and contains video element",
+          "script": "from pathlib import Path\nhtml = Path('index.html').read_text()\nassert '<video' in html, 'Missing video element'\nassert 'id=\"scrollVideo\"' in html, 'Video element should have id scrollVideo'",
+          "points": 1
+        },
+        {
+          "id": 2,
+          "description": "Video has required attributes (muted, playsinline, preload, no autoplay/controls)",
+          "script": "from pathlib import Path\nhtml = Path('index.html').read_text()\nassert 'muted' in html, 'Video should be muted'\nassert 'playsinline' in html, 'Video should have playsinline attribute'\nassert 'preload=\"auto\"' in html or \"preload='auto'\" in html, 'Video should preload auto'\nassert 'autoplay' not in html, 'Should NOT have autoplay attribute'\nassert 'controls' not in html, 'Should NOT have controls attribute'",
+          "points": 1
+        },
+        {
+          "id": 3,
+          "description": "Video CSS is correct (fixed position, cover, z-index 0)",
+          "script": "from pathlib import Path\nhtml = Path('index.html').read_text()\nassert 'position: fixed' in html, 'Video should have position fixed'\nassert 'object-fit: cover' in html, 'Video should have object-fit cover'\nassert 'z-index: 0' in html, 'Video should have z-index 0'",
+          "points": 1
+        },
+        {
+          "id": 4,
+          "description": "Body has correct height (500-600vh)",
+          "script": "from pathlib import Path\nhtml = Path('index.html').read_text()\nimport re\nheight_match = re.search(r'body\\s*\\{[^}]*height:\\s*(\\d+)vh', html)\nassert height_match, 'Body should have height in vh'\nheight = int(height_match.group(1))\nassert 500 <= height <= 600, f'Body height {height}vh should be between 500-600vh'",
+          "points": 1
+        },
+        {
+          "id": 5,
+          "description": "Text block exists with correct data attributes",
+          "script": "from pathlib import Path\nhtml = Path('index.html').read_text()\nassert 'class=\"text-block' in html or \"class='text-block\" in html, 'Should have text-block class'\nassert 'data-start=' in html, 'Should have data-start attribute'\nassert 'data-end=' in html, 'Should have data-end attribute'\n# Check values\nassert 'data-start=\"0.2\"' in html or \"data-start='0.2'\" in html, 'Text block should start at 0.2'\nassert 'data-end=\"0.4\"' in html or \"data-end='0.4'\" in html, 'Text block should end at 0.4'",
+          "points": 1
+        },
+        {
+          "id": 6,
+          "description": "Scroll-to-video mapping uses requestAnimationFrame",
+          "script": "from pathlib import Path\nhtml = Path('index.html').read_text()\nassert 'requestAnimationFrame' in html, 'Should use requestAnimationFrame for smooth scrolling'\nassert 'scrollY' in html, 'Should read scrollY position'\nassert 'currentTime' in html, 'Should set video.currentTime'",
+          "points": 1
+        },
+        {
+          "id": 7,
+          "description": "Text blocks have will-change for GPU acceleration",
+          "script": "from pathlib import Path\nhtml = Path('index.html').read_text()\nassert 'will-change' in html, 'Should use will-change for GPU acceleration'\nassert ('transform, opacity' in html) or ('opacity, transform' in html), 'Should have will-change for transform and opacity'",
+          "points": 1
+        },
+        {
+          "id": 8,
+          "description": "Navigation bar is fixed and transparent",
+          "script": "from pathlib import Path\nhtml = Path('index.html').read_text()\nassert '<nav' in html, 'Should have nav element'\nassert 'position: fixed' in html, 'Nav should be fixed'\n# z-index higher than video\nassert 'z-index: 10' in html or 'z-index: 9' in html, 'Nav should have high z-index'",
+          "points": 1
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "multiple-text-blocks-offset",
+      "prompt": "Generate a scroll video page with three text blocks appearing at different scroll positions: first block aligned left from 10% to 25%, second aligned right from 35% to 50%, and third centered from 60% to 75%. Use alternating text alignment and proper offsets.",
+      "expected_output": "HTML file with three .text-block divs having appropriate position classes (left, right, center), data-start and data-end attributes matching the percentages, proper z-index layering, and smooth fade animations. The text should be offset from edges using padding.",
+      "files": [
+        {
+          "path": "index.html",
+          "type": "file"
+        }
+      ],
+      "assertions": [
+        {
+          "id": 1,
+          "description": "Three text-block elements present",
+          "script": "from pathlib import Path\nhtml = Path('index.html').read_text()\nimport re\nblocks = re.findall(r'class=\"text-block[^\"]*\"', html)\nassert len(blocks) >= 3, f'Should have at least 3 text blocks, found {len(blocks)}'",
+          "points": 1
+        },
+        {
+          "id": 2,
+          "description": "Text blocks have individual start/end ranges",
+          "script": "from pathlib import Path\nhtml = Path('index.html').read_text()\nimport re\nstarts = re.findall(r'data-start=\"([0-9.]+)\"', html) + re.findall(r\"data-start='([0-9.]+)'\", html)\nends = re.findall(r'data-end=\"([0-9.]+)\"', html) + re.findall(r\"data-end='([0-9.]+)'\", html)\nassert len(starts) >= 3, 'Should have at least 3 data-start values'\nassert len(ends) >= 3, 'Should have at least 3 data-end values'\n# Check ranges roughly match 0.1-0.25, 0.35-0.5, 0.6-0.75\nfloats = lambda vals: [float(v) for v in vals]\nassert any(0.08 <= s <= 0.12 for s in floats(starts)), 'First block should start around 0.1'\nassert any(0.33 <= s <= 0.37 for s in floats(starts)), 'Second block should start around 0.35'\nassert any(0.58 <= s <= 0.62 for s in floats(starts)), 'Third block should start around 0.6'",
+          "points": 1
+        },
+        {
+          "id": 3,
+          "description": "Left, right, and center positioning classes present",
+          "script": "from pathlib import Path\nhtml = Path('index.html').read_text()\nhas_left = 'left' in html and 'text-block left' in html\nhas_right = 'right' in html and 'text-block right' in html\nhas_center = 'center' in html and 'text-block center' in html\nassert has_left, 'Should have left-aligned text block'\nassert has_right, 'Should have right-aligned text block'\nassert has_center, 'Should have centered text block'",
+          "points": 1
+        },
+        {
+          "id": 4,
+          "description": "Text blocks use fixed positioning",
+          "script": "from pathlib import Path\nhtml = Path('index.html').read_text()\ncss_match = re.search(r'\\.text-block\\s*\\{[^}]*\\}', html)\nassert css_match, 'Should have .text-block CSS rule'\ncss = css_match.group(0)\nassert 'position: fixed' in css, 'Text blocks should be fixed position'",
+          "points": 1
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "mobile-optimized",
+      "prompt": "Create a scroll-video page optimized for mobile devices. Include responsive text sizing, appropriate padding for touch screens, and ensure iOS compatibility with playsinline. Add a media query for screens under 768px.",
+      "expected_output": "HTML file with video scroll animation plus mobile-responsive CSS using @media queries, reduced text sizes on mobile, increased padding, and all required video attributes for iOS. Should still follow core architecture principles.",
+      "files": [
+        {
+          "path": "index.html",
+          "type": "file"
+        }
+      ],
+      "assertions": [
+        {
+          "id": 1,
+          "description": "Mobile viewport meta tag present",
+          "script": "from pathlib import Path\nhtml = Path('index.html').read_text()\nassert 'viewport' in html, 'Should have viewport meta tag'\nassert 'width=device-width' in html, 'Viewport should set width=device-width'",
+          "points": 1
+        },
+        {
+          "id": 2,
+          "description": "Media query for mobile screens exists",
+          "script": "from pathlib import Path\nhtml = Path('index.html').read_text()\nassert '@media' in html, 'Should have media queries'\nassert 'max-width: 768px' in html or 'max-width:768px' in html, 'Should target mobile breakpoint'",
+          "points": 1
+        },
+        {
+          "id": 3,
+          "description": "Video has playsinline attribute for iOS",
+          "script": "from pathlib import Path\nhtml = Path('index.html').read_text()\nassert 'playsinline' in html, 'Video must have playsinline for iOS'",
+          "points": 1
+        },
+        {
+          "id": 4,
+          "description": "Mobile styles adjust text size or padding",
+          "script": "from pathlib import Path\nhtml = Path('index.html').read_text()\nimport re\nmobile_css = re.search(r'@media[^{]+\\{[^}]+\\}', html, re.DOTALL)\nassert mobile_css, 'Should have mobile media query block'\nmobile_styles = mobile_css.group(0)\nhas_adjustment = 'font-size' in mobile_styles or 'padding' in mobile_styles or 'text' in mobile_styles\nassert has_adjustment, 'Mobile media query should adjust layout'",
+          "points": 1
+        },
+        {
+          "id": 5,
+          "description": "Scroll animation logic exists and uses requestAnimationFrame",
+          "script": "from pathlib import Path\nhtml = Path('index.html').read_text()\nassert 'requestAnimationFrame' in html, 'Should use requestAnimationFrame'\nassert 'addEventListener' in html and 'scroll' in html, 'Should have scroll event listener'",
+          "points": 1
+        }
+      ]
+    }
+  ]
+}
